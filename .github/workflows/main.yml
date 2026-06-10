@@ -1,0 +1,16 @@
+name: ParTaxí CI Pipeline
+
+on:
+  push:
+    branches: [ "main" ]
+
+jobs:
+  construir-imagen:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: 1. Descargar el código fuente
+      uses: actions/checkout@v4
+
+    - name: 2. Construir la imagen Docker del Backend
+      run: docker build -t partaxi-backend:v2.0 .
