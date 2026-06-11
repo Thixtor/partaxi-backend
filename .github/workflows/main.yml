@@ -51,7 +51,7 @@ jobs:
     # Paso 5: PRÁCTICA CI - Ejecución de pruebas unitarias lógicas y matemáticas
     - name: 🧪 Ejecutar Pruebas Unitarias (PyTest)
       run: |
-        pytest || echo "No se encontraron pruebas formalizadas aún, continuando..."
+        pytest
 
   # =========================================================================
   # SEGUNDO JOB: EMPAQUETADO DEL CONTENEDOR (ETAPA DE ENTREGA CONTINUA)
