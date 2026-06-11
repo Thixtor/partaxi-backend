@@ -1,16 +1,55 @@
-name: ParTaxí CI Pipeline
+name: CI/CD Pipeline ParTaxí Backend
 
 on:
   push:
     branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
 
 jobs:
-  construir-imagen:
+  verificaciones:
+    name: Análisis de Calidad y Pruebas
     runs-on: ubuntu-latest
 
     steps:
-    - name: 1. Descargar el código fuente
+    - name: Clonar repositorio
       uses: actions/checkout@v4
 
-    - name: 2. Construir la imagen Docker del Backend
-      run: docker build -t partaxi-backend:v2.0 .
+    - name: Configurar entorno Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.11'
+        cache: 'pip' # Optimización de velocidad para ejecuciones continuas
+
+    - name: Instalar dependencias
+      run: |
+        python -m pip install --upgrade pip
+        pip install flake8 pytest django
+        if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+
+    - name: Ejecutar Linter (flake8)
+      run: |
+        # Detiene el pipeline si hay errores sintácticos o lógicos graves
+        flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
+        # Advertencias de estilo (PEP 8)
+        flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+
+    - name: Ejecutar Pruebas Unitarias (PyTest)
+      run: |
+        pytest
+
+  construccion:
+    name: Empaquetado de Contenedor
+    needs: verificaciones # Restricción estricta: requiere que el job anterior sea exitoso
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Clonar repositorio
+      uses: actions/checkout@v4
+
+    - name: Configurar Docker Buildx
+      uses: docker/setup-buildx-action@v3
+
+    - name: Construir Imagen Docker
+      run: |
+        docker build -t partaxi-backend:latest .
